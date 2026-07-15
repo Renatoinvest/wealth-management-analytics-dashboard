@@ -1,8 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+*.sqlite
+*.db
+
+# Power BI Cache
+*.pbix.autosave
+
+# Environment Variables
+.env
+
+# Python Build
+build/
+dist/
+*.egg-info/
+
+# VS Code Workspace
+*.code-workspace
+
+# VS Code Workspace
+*.code-workspace
+
+# Python
 __pycache__/
 *.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Virtual Environment
+venv/
 .env
-.vscode/
-.idea/
-*.sqlite3
-*.db
+
+# Logs
+logs/
+
+# macOS
 .DS_Store
+
+# Windows
+Thumbs.db
