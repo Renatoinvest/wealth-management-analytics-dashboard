@@ -69,31 +69,31 @@ The pipeline was designed to:
 
 ```
           ┌────────────────────────────┐
-          │      Data Generation        │
+          │      Data Generation       │
           └──────────────┬─────────────┘
                          │
                          ▼
           ┌────────────────────────────┐
-          │        Bronze Layer         │
-          │      Raw Financial Data     │
+          │        Bronze Layer        │
+          │      Raw Financial Data    │
           └──────────────┬─────────────┘
                          │
                          ▼
           ┌────────────────────────────┐
-          │        Silver Layer         │
-          │ Validation & Transformation │
+          │        Silver Layer        │
+          │ Validation & Transformation│
           └──────────────┬─────────────┘
                          │
                          ▼
           ┌────────────────────────────┐
-          │         Gold Layer          │
-          │ Enterprise Data Warehouse   │
+          │         Gold Layer         │
+          │ Enterprise Data Warehouse  │
           └──────────────┬─────────────┘
                          │
                          ▼
           ┌────────────────────────────┐
-          │     Business Intelligence   │
-          │         Power BI            │
+          │     Business Intelligence  │
+          │         Power BI           │
           └────────────────────────────┘
 ```
 
