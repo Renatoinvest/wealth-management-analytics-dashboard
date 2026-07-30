@@ -267,7 +267,7 @@ Professor of Technical Education
 ## Connect with me
 
 - [LinkedIn](https://www.linkedin.com/in/renato-novaes-financial-data-analyst/)
-- [GitHub](https://github.com/Renatoinvest/wealth-management-analytics-dashboard)
+- [GitHub](https://github.com/Renatoinvest)
 - Email: renatovenancionovaes26@gmail.com
 
 ---
