@@ -256,7 +256,7 @@ Financial Analytics
 
 Business Intelligence
 
-Investment Specialist (CEA)
+Investment Specialist (CPA e C Pro-I)
 
 MBA in Data Science & Artificial Intelligence (USP)
 
@@ -266,9 +266,9 @@ Professor of Technical Education
 
 ## Connect with me
 
-- LinkedIn
-- GitHub
-- Email
+- [LinkedIn](https://www.linkedin.com/in/renato-novaes-financial-data-analyst/)
+- [GitHub](https://github.com/Renatoinvest/wealth-management-analytics-dashboard)
+- Email: renatovenancionovaes26@gmail.com
 
 ---
 
