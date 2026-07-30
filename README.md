@@ -56,31 +56,71 @@ This project centralizes all these indicators into one analytical platform.
 
 # Solution Architecture
 
+```text
+Raw Data
+    ↓
+Bronze Layer
+    ↓
+Silver Layer
+    ↓
+Gold Layer
+    ↓
+PostgreSQL Data Warehouse
+    ↓
+Python Analytics
+    ↓
+Power BI Dashboard
+    ↓
+Business Decision
 ```
 
-Raw Data
-↓
+---
 
-Bronze Layer
-↓
+# Current Progress
 
-Silver Layer
-↓
+## Completed
 
-Gold Layer
-↓
+- Project Planning
+- Business Documentation
+- Data Warehouse Modeling
+- PostgreSQL Database
+- Database Schemas
+- Dimension Tables
+- Fact Tables
 
-PostgreSQL
-↓
+## In Progress
 
-Python Analytics
-↓
+- Data Warehouse Population
 
-Power BI Dashboard
-↓
+---
 
-Business Decision
+# Database Structure
 
+```text
+wealth_management_dw
+│
+├── audit
+├── dw
+│   ├── dim_calendar
+│   ├── dim_client
+│   └── fact_transactions
+│
+├── etl
+├── mart
+├── public
+└── staging
+```
+
+---
+
+# Database Scripts
+
+```text
+database/
+└── ddl
+    ├── 02_create_schemas.sql
+    ├── 03_create_dimensions.sql
+    └── 04_create_fact_tables.sql
 ```
 
 ---
@@ -133,18 +173,25 @@ Business Decision
 
 # Project Structure
 
-```
-
+```text
 wealth-management-analytics-dashboard/
-
-docs/
-database/
-python/
-data/
-powerbi/
-tests/
-images/
-
+│
+├── architecture/
+├── data/
+├── database/
+│   ├── backups/
+│   ├── ddl/
+│   ├── dml/
+│   ├── functions/
+│   ├── indexes/
+│   ├── procedures/
+│   ├── queries/
+│   ├── seeds/
+│   └── views/
+│
+├── docs/
+├── images/
+└── .vscode/
 ```
 
 ---
@@ -171,7 +218,7 @@ The platform tracks more than 30 business indicators, including:
 
 - [x] Project Planning
 - [x] Documentation
-- [ ] PostgreSQL Database
+- [x] PostgreSQL Database
 - [ ] ETL Pipeline
 - [ ] Synthetic Data Generator
 - [ ] Power BI Dashboard
@@ -190,17 +237,11 @@ Coming soon...
 # Future Improvements
 
 - Azure Deployment
-
 - Docker
-
 - CI/CD
-
 - Data Warehouse
-
 - Recommendation Engine
-
 - Predictive Analytics
-
 - Real-time Dashboards
 
 ---
@@ -209,7 +250,7 @@ Coming soon...
 
 ## Renato Novaes
 
-Data Scientist
+**Data Scientist**
 
 Financial Analytics
 
@@ -225,11 +266,9 @@ Professor of Technical Education
 
 ## Connect with me
 
-LinkedIn
-
-GitHub
-
-Email
+- LinkedIn
+- GitHub
+- Email
 
 ---
 
