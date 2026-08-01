@@ -3,7 +3,7 @@
 Wealth Management Analytics Dashboard
 On Time Analytics Services
 
-Script: 06_insert_dim_client.sql
+Script: 07_insert_dim_client.sql
 Descrição: População da dimensão clientes
 ==========================================================
 */

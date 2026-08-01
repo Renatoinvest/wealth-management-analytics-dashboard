@@ -3,7 +3,7 @@
 Wealth Management Analytics Dashboard
 On Time Analytics Services
 
-Script: 05_insert_dim_calendar.sql
+Script: 06_insert_dim_calendar.sql
 Descrição: População da dimensão calendário
 ==========================================================
 */
