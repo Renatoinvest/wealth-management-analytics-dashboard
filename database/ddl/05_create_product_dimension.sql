@@ -35,3 +35,4 @@ CREATE TABLE IF NOT EXISTS dw.dim_product (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
 );
+
