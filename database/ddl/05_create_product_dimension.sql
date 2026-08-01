@@ -26,6 +26,12 @@ CREATE TABLE IF NOT EXISTS dw.dim_product (
 
     issuer VARCHAR(100) NOT NULL,
 
+    minimum_investment NUMERIC(15,2) NOT NULL,
+
+    recommended_holding_period VARCHAR(30) NOT NULL,
+
+    is_active BOOLEAN DEFAULT TRUE,
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
 );
