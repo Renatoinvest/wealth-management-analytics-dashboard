@@ -1,409 +1,414 @@
 /*
-==============================================================
-Wealth Management Analytics Dashboard
-On Time Analytics Services
-
-Script: 09_insert_fact_transactions.sql
-Descrição: Geração das movimentações financeiras sintéticas
-==============================================================
+===============================================================================
+File        : 09_insert_fact_transactions.sql
+Project     : Wealth Management Analytics Dashboard
+Company     : On Time Analytics Services
+Database    : PostgreSQL 16
+Purpose     : Populate dw.fact_transactions
+===============================================================================
 */
 
-------------------------------------------------------------
--- Limpa a tabela
-------------------------------------------------------------
+BEGIN;
 
-TRUNCATE TABLE dw.fact_transactions
-RESTART IDENTITY;
+-- ============================================================================
+-- TRUNCATE FACT TABLE
+-- ============================================================================
 
-------------------------------------------------------------
--- Produtos permitidos por perfil
-------------------------------------------------------------
+TRUNCATE TABLE dw.fact_transactions;
 
-WITH allowed_products AS (
+-- ============================================================================
+-- LOAD FACT_TRANSACTIONS
+-- ============================================================================
 
-SELECT 'Conservative' AS investor_profile,'Tesouro Selic' AS product_name
-UNION ALL SELECT 'Conservative','Tesouro Prefixado'
-UNION ALL SELECT 'Conservative','Tesouro IPCA+'
-UNION ALL SELECT 'Conservative','CDB'
-UNION ALL SELECT 'Conservative','LCI'
-UNION ALL SELECT 'Conservative','LCA'
-UNION ALL SELECT 'Conservative','Previdência Privada'
-
-UNION ALL
-
-SELECT 'Moderate','Tesouro Selic'
-UNION ALL SELECT 'Moderate','Tesouro Prefixado'
-UNION ALL SELECT 'Moderate','Tesouro IPCA+'
-UNION ALL SELECT 'Moderate','CDB'
-UNION ALL SELECT 'Moderate','LCI'
-UNION ALL SELECT 'Moderate','LCA'
-UNION ALL SELECT 'Moderate','CRI'
-UNION ALL SELECT 'Moderate','CRA'
-UNION ALL SELECT 'Moderate','Debênture'
-UNION ALL SELECT 'Moderate','Fundo Multimercado'
-UNION ALL SELECT 'Moderate','ETF'
-UNION ALL SELECT 'Moderate','Previdência Privada'
-
-UNION ALL
-
-SELECT 'Aggressive','Tesouro Selic'
-UNION ALL SELECT 'Aggressive','Tesouro Prefixado'
-UNION ALL SELECT 'Aggressive','Tesouro IPCA+'
-UNION ALL SELECT 'Aggressive','CDB'
-UNION ALL SELECT 'Aggressive','LCI'
-UNION ALL SELECT 'Aggressive','LCA'
-UNION ALL SELECT 'Aggressive','CRI'
-UNION ALL SELECT 'Aggressive','CRA'
-UNION ALL SELECT 'Aggressive','Debênture'
-UNION ALL SELECT 'Aggressive','Fundo Multimercado'
-UNION ALL SELECT 'Aggressive','ETF'
-UNION ALL SELECT 'Aggressive','Ações'
-UNION ALL SELECT 'Aggressive','BDR'
-UNION ALL SELECT 'Aggressive','Fundo Imobiliário (FII)'
-UNION ALL SELECT 'Aggressive','Previdência Privada'
-
+WITH client_population AS
+(
+    SELECT
+        c.client_key,
+        c.investor_profile,
+        c.wealth_segment,
+        CASE
+            WHEN c.investor_profile = 'Conservative' THEN 80
+            WHEN c.investor_profile = 'Moderate' THEN 110
+            WHEN c.investor_profile = 'Aggressive' THEN 150
+        END AS operations_per_client
+    FROM dw.dim_client c
 ),
-
-------------------------------------------------------------
--- Quantidade de operações por cliente
-------------------------------------------------------------
-
-client_operations AS (
-
-SELECT
-
-    client_key,
-
-    investor_profile,
-
-    CASE
-
-        WHEN investor_profile='Conservative'
-            THEN 80
-
-        WHEN investor_profile='Moderate'
-            THEN 110
-
-        ELSE 150
-
-    END AS operations
-
-FROM dw.dim_client
-
-),
-
-------------------------------------------------------------
--- Expande uma linha por operação
-------------------------------------------------------------
-
-operations AS (
-
-SELECT
-
-    c.client_key,
-
-    c.investor_profile,
-
-    generate_series(1,c.operations) AS operation_number
-
-FROM client_operations c
-
-),
-
-------------------------------------------------------------
--- Escolha aleatória da data
-------------------------------------------------------------
-
-random_dates AS (
-
-SELECT
-
-    o.client_key,
-
-    o.investor_profile,
-
-    o.operation_number,
-
+client_operations AS
+(
+    SELECT
+        cp.client_key,
+        cp.investor_profile,
+        cp.wealth_segment,
+        gs.operation_number
+    FROM client_population cp
+    CROSS JOIN LATERAL generate_series
     (
-
-        SELECT calendar_key
-
-        FROM dw.dim_calendar
-
-        WHERE year BETWEEN 2020 AND 2025
-
-        ORDER BY random()
-
-        LIMIT 1
-
-    ) AS calendar_key
-
-FROM operations o
-
+        1,
+        cp.operations_per_client
+    ) AS gs(operation_number)
 ),
-
-------------------------------------------------------------
--- Escolha do produto conforme perfil
-------------------------------------------------------------
-
-chosen_products AS (
-
-SELECT
-
-    r.client_key,
-
-    r.calendar_key,
-
-    r.operation_number,
-
-    r.investor_profile,
-
+calendar_distribution AS
+(
+    SELECT
+        dc.calendar_key,
+        dc.full_date,
+        ROW_NUMBER() OVER
+        (
+            ORDER BY dc.full_date
+        ) AS calendar_seq,
+        COUNT(*) OVER () AS total_days
+    FROM dw.dim_calendar dc
+    WHERE dc.full_date BETWEEN DATE '2020-01-01' AND DATE '2025-12-31'
+),
+operation_seed AS
+(
+    SELECT
+        co.client_key,
+        co.investor_profile,
+        co.wealth_segment,
+        co.operation_number,
+        ROW_NUMBER() OVER
+        (
+            ORDER BY
+                co.client_key,
+                co.operation_number
+        ) AS global_operation_id
+    FROM client_operations co
+),
+assigned_dates AS
+(
+    SELECT
+        os.client_key,
+        os.investor_profile,
+        os.wealth_segment,
+        os.operation_number,
+        os.global_operation_id,
+        cd.calendar_key
+    FROM operation_seed os
+    INNER JOIN calendar_distribution cd
+        ON cd.calendar_seq =
+        (
+            (
+                (
+                    os.global_operation_id * 37
+                )
+                +
+                (
+                    os.client_key * 13
+                )
+                +
+                (
+                    os.operation_number * 7
+                )
+            ) % cd.total_days
+        ) + 1
+),
+allowed_products AS
+(
+    SELECT
+        p.product_key,
+        'Conservative' AS investor_profile
+    FROM dw.dim_product p
+    WHERE LOWER(p.product_name) IN
     (
+        LOWER('Tesouro Selic'),
+        LOWER('Tesouro Prefixado'),
+        LOWER('Tesouro IPCA+'),
+        LOWER('CDB'),
+        LOWER('LCI'),
+        LOWER('LCA'),
+        LOWER('Previdência Privada')
+    )
 
-        SELECT dp.product_key
+    UNION ALL
 
-        FROM allowed_products ap
+    SELECT
+        p.product_key,
+        'Moderate'
+    FROM dw.dim_product p
+    WHERE LOWER(p.product_name) IN
+    (
+        LOWER('Tesouro Selic'),
+        LOWER('Tesouro Prefixado'),
+        LOWER('Tesouro IPCA+'),
+        LOWER('CDB'),
+        LOWER('LCI'),
+        LOWER('LCA'),
+        LOWER('Previdência Privada'),
+        LOWER('CRI'),
+        LOWER('CRA'),
+        LOWER('Debênture'),
+        LOWER('Fundo Multimercado'),
+        LOWER('ETF')
+    )
 
-        JOIN dw.dim_product dp
+    UNION ALL
 
-             ON dp.product_name = ap.product_name
-
-        WHERE ap.investor_profile = r.investor_profile
-
-        ORDER BY random()
-
-        LIMIT 1
-
-    ) AS product_key
-
-FROM random_dates r
-
+    SELECT
+        p.product_key,
+        'Aggressive'
+    FROM dw.dim_product p
 ),
-
-------------------------------------------------------------
--- Tipo da movimentação
-------------------------------------------------------------
-
-transaction_rules AS (
-
-SELECT
-
-    cp.*,
-
-    CASE
-
-        WHEN random() <= 0.60
-
-            THEN 'Investment'
-
-        WHEN random() <= 0.90
-
-            THEN 'Additional Investment'
-
-        ELSE
-
-            'Redemption'
-
-    END AS transaction_type
-
-FROM chosen_products cp
-
+product_rank AS
+(
+    SELECT
+        investor_profile,
+        product_key,
+        ROW_NUMBER() OVER
+        (
+            PARTITION BY investor_profile
+            ORDER BY product_key
+        ) AS product_seq,
+        COUNT(*) OVER
+        (
+            PARTITION BY investor_profile
+        ) AS total_products
+    FROM allowed_products
 ),
+final_dataset AS
+(
+    SELECT
+        ad.calendar_key,
+        ad.client_key,
+        pr.product_key,
 
-------------------------------------------------------------
--- Valor financeiro
-------------------------------------------------------------
+        CASE
+            WHEN ((ad.global_operation_id * 97) % 100) < 60
+                THEN 'Investment'
+            WHEN ((ad.global_operation_id * 97) % 100) < 90
+                THEN 'Additional Investment'
+            ELSE 'Redemption'
+        END AS transaction_type,
 
-transaction_values AS (
+        CASE
+            WHEN ad.investor_profile = 'Conservative'
+                THEN ROUND
+                (
+                    (
+                        500 +
+                        (
+                            (
+                                ad.global_operation_id * 173
+                            ) % 24501
+                        )
+                    )::NUMERIC,
+                    2
+                )
 
-SELECT
+            WHEN ad.investor_profile = 'Moderate'
+                THEN ROUND
+                (
+                    (
+                        2000 +
+                        (
+                            (
+                                ad.global_operation_id * 311
+                            ) % 78001
+                        )
+                    )::NUMERIC,
+                    2
+                )
 
-    tr.*,
+            WHEN ad.investor_profile = 'Aggressive'
+                THEN ROUND
+                (
+                    (
+                        5000 +
+                        (
+                            (
+                                ad.global_operation_id * 547
+                            ) % 245001
+                        )
+                    )::NUMERIC,
+                    2
+                )
+        END AS amount,
 
-    CASE
+        (
+            (
+                ad.global_operation_id * 59
+            ) % 500
+        ) + 1 AS quantity
 
-        WHEN investor_profile='Conservative'
+    FROM assigned_dates ad
 
-            THEN ROUND((500 + random()*24500)::numeric,2)
-
-        WHEN investor_profile='Moderate'
-
-            THEN ROUND((2000 + random()*78000)::numeric,2)
-
-        ELSE
-
-            ROUND((5000 + random()*245000)::numeric,2)
-
-    END AS amount
-
-FROM transaction_rules tr
-
-),
-
-------------------------------------------------------------
--- Quantidade negociada
-------------------------------------------------------------
-
-final_transactions AS (
-
-SELECT
-
-    tv.calendar_key,
-
-    tv.client_key,
-
-    tv.product_key,
-
-    tv.transaction_type,
-
-    tv.amount,
-
-    FLOOR(random()*500 + 1)::INTEGER AS quantity
-
-FROM transaction_values tv
-
+    INNER JOIN product_rank pr
+        ON pr.investor_profile = ad.investor_profile
+       AND pr.product_seq =
+       (
+            (
+                (
+                    ad.global_operation_id * 11
+                )
+                +
+                ad.client_key
+            ) % pr.total_products
+       ) + 1
 )
 
-------------------------------------------------------------
--- Inserção das movimentações
-------------------------------------------------------------
-
-INSERT INTO dw.fact_transactions (
-
+INSERT INTO dw.fact_transactions
+(
     calendar_key,
     client_key,
     product_key,
     transaction_type,
     amount,
     quantity
-
 )
-
 SELECT
-
     calendar_key,
     client_key,
     product_key,
     transaction_type,
     amount,
     quantity
+FROM final_dataset;
 
-FROM final_transactions;
+COMMIT;
 
-------------------------------------------------------------
--- Validações
-------------------------------------------------------------
+-- ============================================================================
+-- VALIDATION 01 - TOTAL TRANSACTIONS
+-- ============================================================================
 
-------------------------------------------------------------
--- Quantidade total
-------------------------------------------------------------
-
-SELECT COUNT(*) AS total_transactions
+SELECT
+    COUNT(*) AS total_transactions
 FROM dw.fact_transactions;
 
-------------------------------------------------------------
--- Distribuição por tipo
-------------------------------------------------------------
+-- ============================================================================
+-- VALIDATION 02 - DISTRIBUTION BY TRANSACTION TYPE
+-- ============================================================================
 
 SELECT
-
     transaction_type,
-    COUNT(*) AS total
-
+    COUNT(*) AS transactions,
+    ROUND
+    (
+        100.0 * COUNT(*) / SUM(COUNT(*)) OVER (),
+        2
+    ) AS percentage
 FROM dw.fact_transactions
-
 GROUP BY transaction_type
+ORDER BY transactions DESC;
 
-ORDER BY total DESC;
-
-------------------------------------------------------------
--- Produtos mais negociados
-------------------------------------------------------------
+-- ============================================================================
+-- VALIDATION 03 - MOST TRADED PRODUCTS
+-- ============================================================================
 
 SELECT
-
     p.product_name,
-
-    COUNT(*) AS total
-
+    COUNT(*) AS transactions
 FROM dw.fact_transactions f
-
-JOIN dw.dim_product p
-
-ON p.product_key = f.product_key
-
+INNER JOIN dw.dim_product p
+        ON p.product_key = f.product_key
 GROUP BY p.product_name
+ORDER BY transactions DESC;
 
-ORDER BY total DESC;
-
-------------------------------------------------------------
--- Perfil do investidor
-------------------------------------------------------------
+-- ============================================================================
+-- VALIDATION 04 - INVESTOR PROFILE DISTRIBUTION
+-- ============================================================================
 
 SELECT
-
     c.investor_profile,
-
-    COUNT(*) AS total_operacoes,
-
-    ROUND(SUM(f.amount),2) AS volume_financeiro
-
+    COUNT(*) AS transactions
 FROM dw.fact_transactions f
-
-JOIN dw.dim_client c
-
-ON c.client_key = f.client_key
-
+INNER JOIN dw.dim_client c
+        ON c.client_key = f.client_key
 GROUP BY c.investor_profile
+ORDER BY transactions DESC;
 
-ORDER BY volume_financeiro DESC;
-
-------------------------------------------------------------
--- Volume por segmento
-------------------------------------------------------------
+-- ============================================================================
+-- VALIDATION 05 - TOTAL FINANCIAL VOLUME
+-- ============================================================================
 
 SELECT
+    ROUND(SUM(amount),2) AS total_financial_volume
+FROM dw.fact_transactions;
 
+-- ============================================================================
+-- VALIDATION 06 - VOLUME BY WEALTH SEGMENT
+-- ============================================================================
+
+SELECT
     c.wealth_segment,
-
-    ROUND(SUM(f.amount),2) AS volume
-
+    ROUND(SUM(f.amount),2) AS financial_volume
 FROM dw.fact_transactions f
-
-JOIN dw.dim_client c
-
-ON c.client_key=f.client_key
-
+INNER JOIN dw.dim_client c
+        ON c.client_key = f.client_key
 GROUP BY c.wealth_segment
+ORDER BY financial_volume DESC;
 
-ORDER BY volume DESC;
-
-------------------------------------------------------------
--- Ticket médio
-------------------------------------------------------------
+-- ============================================================================
+-- VALIDATION 07 - AVERAGE TICKET
+-- ============================================================================
 
 SELECT
-
-ROUND(AVG(amount),2) AS ticket_medio
-
+    ROUND(AVG(amount),2) AS average_ticket
 FROM dw.fact_transactions;
 
-------------------------------------------------------------
--- Maior operação
-------------------------------------------------------------
+-- ============================================================================
+-- VALIDATION 08 - LARGEST TRANSACTION
+-- ============================================================================
 
 SELECT
-
-MAX(amount)
-
+    MAX(amount) AS largest_transaction
 FROM dw.fact_transactions;
 
-------------------------------------------------------------
--- Menor operação
-------------------------------------------------------------
+-- ============================================================================
+-- VALIDATION 09 - SMALLEST TRANSACTION
+-- ============================================================================
 
 SELECT
+    MIN(amount) AS smallest_transaction
+FROM dw.fact_transactions;
 
-MIN(amount)
+-- ============================================================================
+-- VALIDATION 10 - FIRST AND LAST DATE
+-- ============================================================================
 
+SELECT
+    MIN(c.full_date) AS first_transaction_date,
+    MAX(c.full_date) AS last_transaction_date
+FROM dw.fact_transactions f
+INNER JOIN dw.dim_calendar c
+        ON c.calendar_key = f.calendar_key;
+
+-- ============================================================================
+-- VALIDATION 11 - DISTRIBUTION BY YEAR
+-- ============================================================================
+
+SELECT
+    c.year,
+    COUNT(*) AS transactions
+FROM dw.fact_transactions f
+INNER JOIN dw.dim_calendar c
+        ON c.calendar_key = f.calendar_key
+GROUP BY c.year
+ORDER BY c.year;
+
+-- ============================================================================
+-- VALIDATION 12 - DISTRIBUTION BY MONTH
+-- ============================================================================
+
+SELECT
+    c.year,
+    c.month,
+    c.month_name,
+    COUNT(*) AS transactions
+FROM dw.fact_transactions f
+INNER JOIN dw.dim_calendar c
+        ON c.calendar_key = f.calendar_key
+GROUP BY
+    c.year,
+    c.month,
+    c.month_name
+ORDER BY
+    c.year,
+    c.month;
+
+-- ============================================================================
+-- VALIDATION 13 - DISTINCT DAYS USED
+-- ============================================================================
+
+SELECT
+    COUNT(DISTINCT calendar_key) AS distinct_days_used
 FROM dw.fact_transactions;
