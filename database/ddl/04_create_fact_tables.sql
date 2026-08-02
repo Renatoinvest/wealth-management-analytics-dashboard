@@ -34,6 +34,10 @@ CREATE TABLE IF NOT EXISTS dw.fact_transactions (
         FOREIGN KEY (client_key)
         REFERENCES dw.dim_client(client_key)
 
+        CONSTRAINT fk_fact_product
+        FOREIGN KEY (product_key)
+        REFERENCES dw.dim_product(product_key)
+
 );
 
 CREATE INDEX IF NOT EXISTS idx_fact_calendar
