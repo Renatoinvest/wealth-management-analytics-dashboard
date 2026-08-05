@@ -3,7 +3,7 @@
 Wealth Management Analytics Dashboard
 On Time Analytics Services
 
-Script: 07_insert_dim_product.sql
+Script: 09_insert_dim_product.sql
 Descrição: População da dimensão de produtos financeiros
 ==========================================================
 */

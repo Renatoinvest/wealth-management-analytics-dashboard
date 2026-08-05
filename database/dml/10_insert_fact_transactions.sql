@@ -1,6 +1,6 @@
 /*
 ===============================================================================
-File        : 09_insert_fact_transactions.sql
+File        : 10_insert_fact_transactions.sql
 Project     : Wealth Management Analytics Dashboard
 Company     : On Time Analytics Services
 Database    : PostgreSQL 16

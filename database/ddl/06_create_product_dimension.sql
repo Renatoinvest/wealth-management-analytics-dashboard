@@ -3,7 +3,7 @@
 Wealth Management Analytics Dashboard
 On Time Analytics Services
 
-Script: 05_create_product_dimension.sql
+Script: 06_create_product_dimension.sql
 Descrição: Criação da dimensão de produtos financeiros
 ==========================================================
 */
