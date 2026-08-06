@@ -52,6 +52,26 @@ Decision makers need to answer questions like:
 
 This project centralizes all these indicators into one analytical platform.
 
+# Business Rules
+
+The synthetic data generation follows realistic wealth management business rules.
+
+Implemented rules include:
+
+- 5,870 investment clients
+- 19 Financial Advisors
+- Three advisor hierarchy levels
+  - Level 1
+  - Level 2
+  - Private
+- Advisor certifications
+- Client wealth segmentation
+- Investor suitability
+- Product suitability by investor profile
+- Randomized financial transactions
+- Six years of historical data (2020–2025)
+- Referential integrity across all dimensions
+
 ---
 
 # Solution Architecture
@@ -82,117 +102,147 @@ Business Decision
 
 - Project Planning
 - Business Documentation
-- Data Warehouse Modeling
+- Star Schema Data Warehouse
 - PostgreSQL Database
 - Database Schemas
 - Dimension Tables
 - Fact Tables
+- Synthetic Data Generator
+- Calendar Dimension
+- Client Dimension
+- Product Dimension
+- Advisor Dimension
+- Client–Advisor Relationship
+- Financial Transactions Fact Table
+- Business Rules Implementation
+- Referential Integrity Validation
 
 ## In Progress
 
-- Data Warehouse Population
+- Power BI Semantic Model
+- Executive Dashboard
 
 ---
 
 # Database Structure
 
-```text
 wealth_management_dw
 │
 ├── audit
 ├── dw
-│   ├── dim_calendar
-│   ├── dim_client
-│   └── fact_transactions
+│ ├── dim_calendar
+│ ├── dim_client
+│ ├── dim_product
+│ ├── dim_advisor
+│ └── fact_transactions
 │
 ├── etl
 ├── mart
 ├── public
 └── staging
-```
 
 ---
 
 # Database Scripts
 
-```text
 database/
-└── ddl
-    ├── 02_create_schemas.sql
-    ├── 03_create_dimensions.sql
-    └── 04_create_fact_tables.sql
-```
+├── ddl
+│ ├── 02_create_schemas.sql
+│ ├── 03_create_dimensions.sql
+│ ├── 04_create_fact_tables.sql
+│ ├── 05_create_dim_advisor.sql
+│ └── 06_alter_dim_client.sql
+│
+└── dml
+├── 06_insert_dim_calendar.sql
+├── 07_insert_dim_client.sql
+├── 08_insert_dim_product.sql
+├── 09_insert_dim_advisor.sql
+└── 10_insert_fact_transactions.sql
 
 ---
 
 # Main Features
 
-✔ Customer Portfolio Analytics
+✔ Star Schema Data Warehouse
+
+✔ Synthetic Financial Dataset
+
+✔ Wealth Management Simulation
+
+✔ Advisor Performance Analytics
 
 ✔ Assets Under Management (AUM)
 
-✔ Revenue Analysis
-
-✔ Advisor Performance
-
-✔ Product Performance
-
 ✔ Client Segmentation
 
-✔ Churn Indicators
+✔ Product Allocation
+
+✔ Portfolio Analytics
 
 ✔ Financial KPIs
 
-✔ ETL Pipeline
+✔ Investor Suitability
 
-✔ SQL Views
+✔ Business Rules Engine
 
-✔ Stored Procedures
+✔ SQL Analytics
 
-✔ REST API
+✔ Power BI Ready
 
 ✔ Machine Learning Ready
 
----
+# Synthetic Dataset
+
+The project currently contains:
+
+| Dataset      |  Records |
+| ------------ | -------: |
+| Calendar     |    2,192 |
+| Clients      |    5,870 |
+| Advisors     |       19 |
+| Products     |       15 |
+| Transactions | ~640,000 |
+
+## The dataset was generated using realistic business rules inspired by private banking and wealth management environments.
+
+# Business Scenario
+
+The project simulates the analytical environment of a Brazilian investment advisory firm.
+
+Business structure:
+
+- 5,870 investors
+- 19 Financial Advisors
+- Three advisor hierarchy levels
+- Fifteen investment products
+- Six years of historical transactions
+- More than 640 thousand financial operations
+
+Each advisor manages clients according to predefined wealth ranges and certification levels, reproducing a realistic private banking operation.
 
 # Technologies
 
-| Technology   | Purpose             |
-| ------------ | ------------------- |
-| Python       | Data Processing     |
-| PostgreSQL   | Database            |
-| SQL          | Data Modeling       |
-| Power BI     | Visualization       |
-| Pandas       | Data Analysis       |
-| NumPy        | Numerical Computing |
-| Scikit-Learn | Machine Learning    |
-| FastAPI      | API                 |
-| Git          | Version Control     |
-
----
-
-# Project Structure
-
-```text
 wealth-management-analytics-dashboard/
 │
 ├── architecture/
 ├── data/
 ├── database/
-│   ├── backups/
-│   ├── ddl/
-│   ├── dml/
-│   ├── functions/
-│   ├── indexes/
-│   ├── procedures/
-│   ├── queries/
-│   ├── seeds/
-│   └── views/
+│ ├── backups/
+│ ├── ddl/
+│ ├── dml/
+│ ├── functions/
+│ ├── indexes/
+│ ├── procedures/
+│ ├── queries/
+│ ├── views/
 │
 ├── docs/
 ├── images/
+├── notebooks/
+├── powerbi/
+├── python/
 └── .vscode/
-```
 
 ---
 
@@ -216,12 +266,20 @@ The platform tracks more than 30 business indicators, including:
 
 # Roadmap
 
+# Roadmap
+
 - [x] Project Planning
 - [x] Documentation
 - [x] PostgreSQL Database
-- [ ] ETL Pipeline
-- [ ] Synthetic Data Generator
-- [ ] Power BI Dashboard
+- [x] Data Warehouse Modeling
+- [x] Synthetic Data Generator
+- [x] Business Rules
+- [x] Advisor Assignment
+- [ ] Power BI Data Model
+- [ ] Executive Dashboard
+- [ ] Advisor Dashboard
+- [ ] Client Dashboard
+- [ ] Product Dashboard
 - [ ] Machine Learning
 - [ ] REST API
 - [ ] Docker Deployment
