@@ -275,7 +275,7 @@ The platform tracks more than 30 business indicators, including:
 - [x] Synthetic Data Generator
 - [x] Business Rules
 - [x] Advisor Assignment
-- [ ] Power BI Data Model
+- [x] Power BI Data Model
 - [ ] Executive Dashboard
 - [ ] Advisor Dashboard
 - [ ] Client Dashboard
